@@ -1,14 +1,21 @@
 -- UniBite database schema + seed data
 -- Usage: mysql -u root < schema.sql
 
+-- The file is UTF-8; force the client connection charset to match,
+-- otherwise Windows mysql clients (cp850 default) corrupt the Greek seed text
+SET NAMES utf8mb4;
+
 DROP DATABASE IF EXISTS unibite;
 CREATE DATABASE unibite CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 USE unibite;
 
 CREATE TABLE users (
   id            INT AUTO_INCREMENT PRIMARY KEY,
-  username      VARCHAR(50) NOT NULL UNIQUE,
+  username      VARCHAR(255) NOT NULL UNIQUE,
+  email         VARCHAR(255) NOT NULL UNIQUE,
   password_hash VARCHAR(100) NOT NULL,
+  first_name    VARCHAR(60)  NOT NULL,
+  last_name     VARCHAR(60)  NOT NULL,
   display_name  VARCHAR(100) NOT NULL,
   role          ENUM('student','admin') NOT NULL DEFAULT 'student',
   points        INT NOT NULL DEFAULT 5,
@@ -84,11 +91,11 @@ INSERT INTO allergens (name) VALUES
   ('Λούπινο'), ('Μαλάκια');
 
 -- Seed users (password for all: pass1234)
-INSERT INTO users (username, password_hash, display_name, role, points) VALUES
-  ('admin',   '$2b$10$jucztNPdrdCVStnqlFOaFesVb.KKPjw16.CFCcAxNrQHtYob.u5gC', 'Διαχειριστής', 'admin', 0),
-  ('maria',   '$2b$10$jucztNPdrdCVStnqlFOaFesVb.KKPjw16.CFCcAxNrQHtYob.u5gC', 'Μαρία Παπαδοπούλου', 'student', 8),
-  ('giorgos', '$2b$10$jucztNPdrdCVStnqlFOaFesVb.KKPjw16.CFCcAxNrQHtYob.u5gC', 'Γιώργος Νικολάου', 'student', 5),
-  ('eleni',   '$2b$10$jucztNPdrdCVStnqlFOaFesVb.KKPjw16.CFCcAxNrQHtYob.u5gC', 'Ελένη Δημητρίου', 'student', 5);
+INSERT INTO users (username, email, password_hash, first_name, last_name, display_name, role, points) VALUES
+  ('admin',   'admin@unibite.gr',   '$2b$10$jucztNPdrdCVStnqlFOaFesVb.KKPjw16.CFCcAxNrQHtYob.u5gC', 'Διαχειριστής', '', 'Διαχειριστής', 'admin', 0),
+  ('maria',   'maria@mail.ntua.gr',   '$2b$10$jucztNPdrdCVStnqlFOaFesVb.KKPjw16.CFCcAxNrQHtYob.u5gC', 'Μαρία', 'Παπαδοπούλου', 'Μαρία Παπαδοπούλου', 'student', 8),
+  ('giorgos', 'giorgos@mail.ntua.gr', '$2b$10$jucztNPdrdCVStnqlFOaFesVb.KKPjw16.CFCcAxNrQHtYob.u5gC', 'Γιώργος', 'Νικολάου', 'Γιώργος Νικολάου', 'student', 5),
+  ('eleni',   'eleni@mail.ntua.gr',   '$2b$10$jucztNPdrdCVStnqlFOaFesVb.KKPjw16.CFCcAxNrQHtYob.u5gC', 'Ελένη', 'Δημητρίου', 'Ελένη Δημητρίου', 'student', 5);
 
 -- Seed listings around the Zografou university campus (Athens)
 INSERT INTO listings (cook_id, title, notes, portions_total, portions_available,
