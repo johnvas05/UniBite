@@ -36,6 +36,7 @@ function renderFeedView(container) {
   L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
     attribution: '© OpenStreetMap',
   }).addTo(map);
+  refreshMap(map);
   let markers = [];
   let refMarker = null;
 

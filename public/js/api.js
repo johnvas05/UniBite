@@ -38,3 +38,11 @@ function el(tag, attrs = {}, ...children) {
   }
   return node;
 }
+
+// A Leaflet map built inside a freshly-injected SPA view measures its container
+// before layout settles, so tiles paint at the wrong origin. Nudge it to recompute
+// its size once the view has been painted (immediately, and again as a fallback).
+function refreshMap(map) {
+  requestAnimationFrame(() => map.invalidateSize());
+  setTimeout(() => map.invalidateSize(), 250);
+}

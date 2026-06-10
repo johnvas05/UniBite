@@ -87,6 +87,7 @@ function renderListingFormView(container, listing) {
   const start = f.lat.value ? [Number(f.lat.value), Number(f.lng.value)] : [37.9779, 23.7850];
   const map = L.map(mapDiv).setView(start, 15);
   L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '© OpenStreetMap' }).addTo(map);
+  refreshMap(map);
   let marker = f.lat.value ? L.marker(start).addTo(map) : null;
   map.on('click', (e) => {
     f.lat.value = e.latlng.lat.toFixed(6);
