@@ -19,6 +19,7 @@ function renderAuthView(container) {
   const lastName = el('input', { type: 'text', placeholder: 'π.χ. Παπαδοπούλου', autocomplete: 'family-name' });
   const email = el('input', { type: 'email', placeholder: 'π.χ. maria@mail.ntua.gr', autocomplete: 'email' });
   const emailHint = el('p', { class: 'field-hint hidden' });
+  const phone = el('input', { type: 'tel', placeholder: 'π.χ. 6941234567', autocomplete: 'tel', pattern: '[+]?[0-9 -]{8,18}', title: '8-15 ψηφία, προαιρετικά με + στην αρχή' });
   const password = el('input', { type: 'password', placeholder: 'Τουλάχιστον 6 χαρακτήρες', required: '', minlength: '6', autocomplete: 'current-password' });
   const passwordRepeat = el('input', { type: 'password', placeholder: 'Ξαναγράψε τον κωδικό', autocomplete: 'new-password' });
   const repeatHint = el('p', { class: 'field-hint hidden' });
@@ -27,9 +28,12 @@ function renderAuthView(container) {
   const toggle = el('a', { href: '#' }, 'Δεν έχεις λογαριασμό; Φτιάξε έναν εδώ ✨');
 
   const identifierRow = el('div', { class: 'form-row' }, el('label', {}, 'Email ή όνομα χρήστη'), identifier);
-  const nameRow = el('div', { class: 'form-row hidden' }, el('label', {}, 'Όνομα'), firstName);
-  const surnameRow = el('div', { class: 'form-row hidden' }, el('label', {}, 'Επώνυμο'), lastName);
+  const nameRow = el('div', { class: 'form-pair hidden' },
+    el('div', { class: 'form-row' }, el('label', {}, 'Όνομα'), firstName),
+    el('div', { class: 'form-row' }, el('label', {}, 'Επώνυμο'), lastName)
+  );
   const emailRow = el('div', { class: 'form-row hidden' }, el('label', {}, 'Email'), email, emailHint);
+  const phoneRow = el('div', { class: 'form-row hidden' }, el('label', {}, 'Τηλέφωνο'), phone);
   const passwordRow = el('div', { class: 'form-row' }, el('label', {}, 'Κωδικός'), password);
   const repeatRow = el('div', { class: 'form-row hidden' }, el('label', {}, 'Επανάληψη κωδικού'), passwordRepeat, repeatHint);
 
@@ -88,13 +92,13 @@ function renderAuthView(container) {
       : 'Έχεις ήδη λογαριασμό; Συνδέσου';
     identifierRow.classList.toggle('hidden', !isLogin);
     nameRow.classList.toggle('hidden', isLogin);
-    surnameRow.classList.toggle('hidden', isLogin);
     emailRow.classList.toggle('hidden', isLogin);
+    phoneRow.classList.toggle('hidden', isLogin);
     repeatRow.classList.toggle('hidden', isLogin);
     // a hidden required field blocks submit — required must follow the visible mode
     for (const [field, neededIn] of [
       [identifier, 'login'], [firstName, 'register'], [lastName, 'register'],
-      [email, 'register'], [passwordRepeat, 'register'],
+      [email, 'register'], [phone, 'register'], [passwordRepeat, 'register'],
     ]) {
       if (mode === neededIn) field.setAttribute('required', '');
       else field.removeAttribute('required');
@@ -109,8 +113,8 @@ function renderAuthView(container) {
     subtitle,
     identifierRow,
     nameRow,
-    surnameRow,
     emailRow,
+    phoneRow,
     passwordRow,
     repeatRow,
     submit,
@@ -126,6 +130,7 @@ function renderAuthView(container) {
         if (password.value !== passwordRepeat.value) return toast('Οι κωδικοί δεν ταιριάζουν', true);
         body = {
           email: email.value,
+          phone: phone.value,
           first_name: firstName.value,
           last_name: lastName.value,
           password: password.value,

@@ -5,6 +5,7 @@ const pool = require('../db');
 const router = express.Router();
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const PHONE_RE = /^\+?\d{8,15}$/; // digits only after stripping spaces/dashes
 
 // GET /api/auth/check-email?email=... — live duplicate check during registration
 router.get('/check-email', async (req, res) => {
@@ -21,13 +22,17 @@ router.get('/check-email', async (req, res) => {
 
 // POST /api/auth/register — new students start with 5 points (C2)
 router.post('/register', async (req, res) => {
-  const { email, first_name, last_name, password, password_repeat } = req.body;
-  if (!email || !first_name || !last_name || !password || !password_repeat) {
+  const { email, phone, first_name, last_name, password, password_repeat } = req.body;
+  if (!email || !phone || !first_name || !last_name || !password || !password_repeat) {
     return res.status(400).json({ error: 'Συμπληρώστε όλα τα πεδία' });
   }
   const cleanEmail = email.trim().toLowerCase();
   if (!EMAIL_RE.test(cleanEmail)) {
     return res.status(400).json({ error: 'Μη έγκυρη διεύθυνση email' });
+  }
+  const cleanPhone = phone.replace(/[\s-]/g, '');
+  if (!PHONE_RE.test(cleanPhone)) {
+    return res.status(400).json({ error: 'Μη έγκυρος αριθμός τηλεφώνου' });
   }
   if (password.length < 6) {
     return res.status(400).json({ error: 'Ο κωδικός πρέπει να έχει τουλάχιστον 6 χαρακτήρες' });
@@ -43,13 +48,13 @@ router.post('/register', async (req, res) => {
     const hash = await bcrypt.hash(password, 10);
     const displayName = `${first_name.trim()} ${last_name.trim()}`;
     const [result] = await pool.query(
-      'INSERT INTO users (username, email, password_hash, first_name, last_name, display_name, points) VALUES (?, ?, ?, ?, ?, ?, 5)',
-      [cleanEmail, cleanEmail, hash, first_name.trim(), last_name.trim(), displayName]
+      'INSERT INTO users (username, email, phone, password_hash, first_name, last_name, display_name, points) VALUES (?, ?, ?, ?, ?, ?, ?, 5)',
+      [cleanEmail, cleanEmail, cleanPhone, hash, first_name.trim(), last_name.trim(), displayName]
     );
     req.session.userId = result.insertId;
     req.session.role = 'student';
     res.status(201).json({
-      id: result.insertId, email: cleanEmail, first_name: first_name.trim(),
+      id: result.insertId, email: cleanEmail, phone: cleanPhone, first_name: first_name.trim(),
       last_name: last_name.trim(), display_name: displayName, role: 'student', points: 5,
     });
   } catch (err) {
@@ -78,8 +83,8 @@ router.post('/login', async (req, res) => {
     req.session.userId = user.id;
     req.session.role = user.role;
     res.json({
-      id: user.id, email: user.email, first_name: user.first_name, last_name: user.last_name,
-      display_name: user.display_name, role: user.role, points: user.points,
+      id: user.id, email: user.email, phone: user.phone, first_name: user.first_name,
+      last_name: user.last_name, display_name: user.display_name, role: user.role, points: user.points,
     });
   } catch (err) {
     console.error(err);
@@ -96,7 +101,7 @@ router.post('/logout', (req, res) => {
 router.get('/me', async (req, res) => {
   if (!req.session.userId) return res.json(null);
   const [rows] = await pool.query(
-    'SELECT id, email, first_name, last_name, display_name, role, points FROM users WHERE id = ?',
+    'SELECT id, email, phone, first_name, last_name, display_name, role, points FROM users WHERE id = ?',
     [req.session.userId]
   );
   res.json(rows[0] || null);

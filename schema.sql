@@ -13,6 +13,7 @@ CREATE TABLE users (
   id            INT AUTO_INCREMENT PRIMARY KEY,
   username      VARCHAR(255) NOT NULL UNIQUE,
   email         VARCHAR(255) NOT NULL UNIQUE,
+  phone         VARCHAR(20)  NOT NULL DEFAULT '',
   password_hash VARCHAR(100) NOT NULL,
   first_name    VARCHAR(60)  NOT NULL,
   last_name     VARCHAR(60)  NOT NULL,
@@ -91,11 +92,11 @@ INSERT INTO allergens (name) VALUES
   ('Λούπινο'), ('Μαλάκια');
 
 -- Seed users (password for all: pass1234)
-INSERT INTO users (username, email, password_hash, first_name, last_name, display_name, role, points) VALUES
-  ('admin',   'admin@unibite.gr',   '$2b$10$jucztNPdrdCVStnqlFOaFesVb.KKPjw16.CFCcAxNrQHtYob.u5gC', 'Διαχειριστής', '', 'Διαχειριστής', 'admin', 0),
-  ('maria',   'maria@mail.ntua.gr',   '$2b$10$jucztNPdrdCVStnqlFOaFesVb.KKPjw16.CFCcAxNrQHtYob.u5gC', 'Μαρία', 'Παπαδοπούλου', 'Μαρία Παπαδοπούλου', 'student', 8),
-  ('giorgos', 'giorgos@mail.ntua.gr', '$2b$10$jucztNPdrdCVStnqlFOaFesVb.KKPjw16.CFCcAxNrQHtYob.u5gC', 'Γιώργος', 'Νικολάου', 'Γιώργος Νικολάου', 'student', 5),
-  ('eleni',   'eleni@mail.ntua.gr',   '$2b$10$jucztNPdrdCVStnqlFOaFesVb.KKPjw16.CFCcAxNrQHtYob.u5gC', 'Ελένη', 'Δημητρίου', 'Ελένη Δημητρίου', 'student', 5);
+INSERT INTO users (username, email, phone, password_hash, first_name, last_name, display_name, role, points) VALUES
+  ('admin',   'admin@unibite.gr',   '2107722000', '$2b$10$jucztNPdrdCVStnqlFOaFesVb.KKPjw16.CFCcAxNrQHtYob.u5gC', 'Διαχειριστής', '', 'Διαχειριστής', 'admin', 0),
+  ('maria',   'maria@mail.ntua.gr',   '6941234567', '$2b$10$jucztNPdrdCVStnqlFOaFesVb.KKPjw16.CFCcAxNrQHtYob.u5gC', 'Μαρία', 'Παπαδοπούλου', 'Μαρία Παπαδοπούλου', 'student', 8),
+  ('giorgos', 'giorgos@mail.ntua.gr', '6957654321', '$2b$10$jucztNPdrdCVStnqlFOaFesVb.KKPjw16.CFCcAxNrQHtYob.u5gC', 'Γιώργος', 'Νικολάου', 'Γιώργος Νικολάου', 'student', 5),
+  ('eleni',   'eleni@mail.ntua.gr',   '6909876543', '$2b$10$jucztNPdrdCVStnqlFOaFesVb.KKPjw16.CFCcAxNrQHtYob.u5gC', 'Ελένη', 'Δημητρίου', 'Ελένη Δημητρίου', 'student', 5);
 
 -- Seed listings around the Zografou university campus (Athens)
 INSERT INTO listings (cook_id, title, notes, portions_total, portions_available,

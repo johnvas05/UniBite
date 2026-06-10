@@ -30,7 +30,7 @@ body {
   display: flex;
   align-items: center;
   gap: 1.5rem;
-  padding: 0.7rem 1.4rem;
+  padding: 0.7rem clamp(1rem, 3vw, 2.5rem);
   background: var(--card-bg);
   border-bottom: 1px solid var(--border);
   box-shadow: 0 2px 10px rgba(160, 120, 85, 0.07);
@@ -90,13 +90,19 @@ body {
 .user-name { font-weight: 700; }
 
 /* ---------- Main / cards ---------- */
+/* Fluid width: fills the screen with comfortable margins up to very wide monitors */
 main {
-  max-width: 1200px;
+  max-width: 1800px;
   margin: 0 auto;
-  padding: 1.4rem 1.2rem;
+  padding: clamp(1rem, 2vh, 1.6rem) clamp(1rem, 3vw, 3rem);
 }
 
-h2 { margin: 0.4rem 0 1rem; font-weight: 800; letter-spacing: -0.3px; }
+h2 {
+  margin: 0.4rem 0 1rem;
+  font-weight: 800;
+  letter-spacing: -0.3px;
+  font-size: clamp(1.25rem, 1rem + 0.9vw, 1.8rem);
+}
 
 .card {
   background: var(--card-bg);
@@ -108,8 +114,9 @@ h2 { margin: 0.4rem 0 1rem; font-weight: 800; letter-spacing: -0.3px; }
 
 .cards-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-  gap: 1.1rem;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 260px), 1fr));
+  gap: clamp(0.8rem, 1.2vw, 1.4rem);
+  align-content: start;
 }
 
 .listing-card {
@@ -232,15 +239,17 @@ h2 { margin: 0.4rem 0 1rem; font-weight: 800; letter-spacing: -0.3px; }
 
 .feed-controls input[type='number'] { width: 110px; }
 
+/* Map + cards split that grows with the viewport */
 .feed-layout {
   display: grid;
-  grid-template-columns: 1fr 1.2fr;
-  gap: 1rem;
+  grid-template-columns: minmax(340px, 5fr) 7fr;
+  gap: clamp(1rem, 1.5vw, 1.8rem);
   align-items: start;
 }
 
 .map {
-  height: 480px;
+  /* fill the visible screen height under the topbar/controls */
+  height: clamp(420px, calc(100vh - 220px), 950px);
   border-radius: var(--radius);
   box-shadow: var(--shadow);
   position: sticky;
@@ -255,11 +264,18 @@ h2 { margin: 0.4rem 0 1rem; font-weight: 800; letter-spacing: -0.3px; }
 
 .auth-form {
   width: 100%;
-  max-width: 400px;
+  max-width: 440px;
   display: flex;
   flex-direction: column;
   gap: 0.85rem;
   padding: 1.8rem 1.6rem;
+}
+
+/* two fields side by side, collapsing on narrow screens */
+.form-pair {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 0.85rem;
 }
 
 .auth-emoji {
@@ -271,12 +287,12 @@ h2 { margin: 0.4rem 0 1rem; font-weight: 800; letter-spacing: -0.3px; }
 .auth-title { text-align: center; margin: 0.2rem 0 0; }
 .auth-sub { text-align: center; color: var(--muted); margin: 0 0 0.4rem; }
 
-.listing-form { max-width: 640px; margin: 0 auto; display: flex; flex-direction: column; gap: 0.9rem; }
+.listing-form { max-width: 720px; margin: 0 auto; display: flex; flex-direction: column; gap: 0.9rem; }
 
 .form-row { display: flex; flex-direction: column; gap: 0.3rem; }
 .form-row label { font-weight: 700; font-size: 0.9rem; }
 
-input[type='text'], input[type='email'], input[type='password'], input[type='number'], textarea, select {
+input[type='text'], input[type='email'], input[type='tel'], input[type='password'], input[type='number'], textarea, select {
   padding: 0.6rem 0.8rem;
   border: 1px solid var(--border);
   border-radius: 12px;
@@ -392,10 +408,17 @@ input.invalid {
 .center { text-align: center; }
 .hidden { display: none !important; }
 
+/* ---------- Large desktop (≥ 1500px) ---------- */
+@media (min-width: 1500px) {
+  .cards-grid { grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); }
+  .card-photo { height: 180px; }
+  .stats-row { grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); }
+}
+
 /* ---------- Tablet (≤ 900px) ---------- */
 @media (max-width: 900px) {
   .feed-layout { grid-template-columns: 1fr; }
-  .map { height: 320px; position: static; }
+  .map { height: clamp(280px, 40vh, 420px); position: static; }
   .boards { grid-template-columns: 1fr; }
 }
 
