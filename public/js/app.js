@@ -1,10 +1,11 @@
 // Client-side view router — swaps views in <main> without page reloads (E1)
+// Each view carries an icon + short label for the mobile bottom tab bar.
 const VIEWS = {
-  feed: { label: 'Αγγελίες', render: renderFeedView, public: true },
-  mine: { label: 'Οι αγγελίες μου', render: renderMyListingsView },
-  inbox: { label: 'Αιτήματα', render: renderInboxView },
-  requests: { label: 'Οι κρατήσεις μου', render: renderMyRequestsView },
-  admin: { label: 'Στατιστικά', render: renderAdminView, adminOnly: true },
+  feed: { label: 'Αγγελίες', short: 'Αγγελίες', icon: '🍽️', render: renderFeedView, public: true },
+  mine: { label: 'Οι αγγελίες μου', short: 'Δικές μου', icon: '📋', render: renderMyListingsView },
+  inbox: { label: 'Αιτήματα', short: 'Αιτήματα', icon: '📥', render: renderInboxView },
+  requests: { label: 'Οι κρατήσεις μου', short: 'Κρατήσεις', icon: '🎟️', render: renderMyRequestsView },
+  admin: { label: 'Στατιστικά', short: 'Στατιστικά', icon: '📊', render: renderAdminView, adminOnly: true },
   auth: { render: renderAuthView, public: true, hidden: true },
   listingForm: { render: renderListingFormView, hidden: true },
 };
@@ -16,27 +17,54 @@ function navigate(name, params) {
   if (!view) return;
   if (!view.public && !currentUser) return navigate('auth');
   currentView = name;
-  document.querySelectorAll('.main-nav a').forEach((a) =>
+  document.querySelectorAll('.nav-link').forEach((a) =>
     a.classList.toggle('active', a.dataset.view === name)
   );
   const main = document.getElementById('view');
   main.innerHTML = '';
+  window.scrollTo(0, 0);
   view.render(main, params);
 }
 
+// Build one nav link; the "bottom" variant stacks an icon over a short label.
+function navLink(name, view, variant) {
+  const link = el('a', { href: '#', class: 'nav-link', 'data-view': name },
+    ...(variant === 'bottom'
+      ? [el('span', { class: 'nav-icon' }, view.icon), el('span', { class: 'nav-short' }, view.short)]
+      : [view.label]));
+  link.addEventListener('click', (e) => { e.preventDefault(); navigate(name); });
+  return link;
+}
+
 function renderNav() {
-  const nav = document.getElementById('main-nav');
-  nav.innerHTML = '';
+  const top = document.getElementById('main-nav');
+  const bottom = document.getElementById('bottom-nav');
+  top.innerHTML = '';
+  bottom.innerHTML = '';
   for (const [name, view] of Object.entries(VIEWS)) {
     if (view.hidden) continue;
     if (!view.public && !currentUser) continue;
     if (view.adminOnly && (!currentUser || currentUser.role !== 'admin')) continue;
-    const link = el('a', { href: '#', 'data-view': name }, view.label);
-    link.addEventListener('click', (e) => {
+    top.append(navLink(name, view, 'top'));
+    bottom.append(navLink(name, view, 'bottom'));
+  }
+  // login / logout lives in the bottom bar on mobile (topbar buttons are hidden there)
+  if (currentUser) {
+    const out = el('a', { href: '#', class: 'nav-link' },
+      el('span', { class: 'nav-icon' }, '🚪'), el('span', { class: 'nav-short' }, 'Έξοδος'));
+    out.addEventListener('click', async (e) => {
       e.preventDefault();
-      navigate(name);
+      await api('/auth/logout', { method: 'POST' });
+      currentUser = null;
+      renderNav();
+      navigate('feed');
     });
-    nav.append(link);
+    bottom.append(out);
+  } else {
+    const login = el('a', { href: '#', class: 'nav-link' },
+      el('span', { class: 'nav-icon' }, '👤'), el('span', { class: 'nav-short' }, 'Σύνδεση'));
+    login.addEventListener('click', (e) => { e.preventDefault(); navigate('auth'); });
+    bottom.append(login);
   }
   renderUserBox();
 }
@@ -44,6 +72,13 @@ function renderNav() {
 document.querySelector('.brand').addEventListener('click', (e) => {
   e.preventDefault();
   navigate('feed');
+});
+
+// Re-fit the visible Leaflet map after viewport changes (rotation, resize)
+let resizeTimer;
+window.addEventListener('resize', () => {
+  clearTimeout(resizeTimer);
+  resizeTimer = setTimeout(() => window.activeMap && window.activeMap.invalidateSize(), 150);
 });
 
 (async function init() {

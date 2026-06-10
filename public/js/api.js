@@ -43,6 +43,7 @@ function el(tag, attrs = {}, ...children) {
 // before layout settles, so tiles paint at the wrong origin. Nudge it to recompute
 // its size once the view has been painted (immediately, and again as a fallback).
 function refreshMap(map) {
+  window.activeMap = map; // so the global resize handler can re-fit it
   requestAnimationFrame(() => map.invalidateSize());
   setTimeout(() => map.invalidateSize(), 250);
 }

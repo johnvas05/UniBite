@@ -17,13 +17,18 @@
 
 * { box-sizing: border-box; }
 
+html, body { overflow-x: hidden; }
+
 body {
   margin: 0;
   font-family: 'Nunito', 'Segoe UI', system-ui, -apple-system, sans-serif;
   background: var(--bg);
   color: var(--text);
   line-height: 1.5;
+  -webkit-text-size-adjust: 100%; /* stop iOS from auto-inflating text in landscape */
 }
+
+img { max-width: 100%; }
 
 /* ---------- Top bar (Flexbox) ---------- */
 .topbar {
@@ -71,6 +76,9 @@ body {
   background: linear-gradient(135deg, #ec8a5f, var(--primary));
   color: #fff;
 }
+
+/* Bottom tab bar is mobile-only; hidden on desktop (see media query below) */
+.bottom-nav { display: none; }
 
 .user-box {
   display: flex;
@@ -418,20 +426,75 @@ input.invalid {
 /* ---------- Tablet (≤ 900px) ---------- */
 @media (max-width: 900px) {
   .feed-layout { grid-template-columns: 1fr; }
-  .map { height: clamp(280px, 40vh, 420px); position: static; }
+  .map { height: clamp(280px, 45vh, 460px); position: static; }
   .boards { grid-template-columns: 1fr; }
 }
 
-/* ---------- Mobile (≤ 600px) ---------- */
-@media (max-width: 600px) {
-  .topbar { gap: 0.6rem; padding: 0.5rem 0.8rem; }
-  .main-nav { order: 3; width: 100%; justify-content: space-between; gap: 0; }
-  .main-nav a { padding: 0.4rem 0.6rem; font-size: 0.85rem; }
+/* ---------- Phones (≤ 760px): top tabs → fixed bottom tab bar ---------- */
+@media (max-width: 760px) {
+  .topbar {
+    flex-wrap: nowrap;
+    gap: 0.5rem;
+    padding: 0.55rem 0.9rem;
+  }
+  .brand { font-size: 1.25rem; }
+  #main-nav { display: none; }               /* desktop tabs hidden on phones */
+  .user-box { margin-left: auto; gap: 0.5rem; }
   .user-name { display: none; }
-  main { padding: 0.8rem; }
+  .user-box .btn { display: none; }          /* login/logout live in the bottom bar */
+
+  /* leave room for the fixed bottom bar (+ iOS home indicator) */
+  main { padding: 0.9rem 0.9rem calc(74px + env(safe-area-inset-bottom)); }
+
+  .bottom-nav {
+    display: flex;
+    position: fixed;
+    left: 0; right: 0; bottom: 0;
+    justify-content: space-around;
+    align-items: stretch;
+    background: var(--card-bg);
+    border-top: 1px solid var(--border);
+    box-shadow: 0 -4px 16px rgba(160, 120, 85, 0.12);
+    padding: 0.3rem 0.2rem calc(0.3rem + env(safe-area-inset-bottom));
+    z-index: 1200;
+  }
+  .bottom-nav .nav-link {
+    flex: 1 1 0;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    padding: 0.35rem 0.15rem;
+    border-radius: 12px;
+    text-decoration: none;
+    color: var(--muted);
+    font-size: 0.68rem;
+    font-weight: 700;
+  }
+  .bottom-nav .nav-icon { font-size: 1.35rem; line-height: 1; }
+  .bottom-nav .nav-short {
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .bottom-nav .nav-link.active { color: var(--primary-dark); background: var(--primary-soft); }
+
+  /* content tweaks */
   .cards-grid { grid-template-columns: 1fr; }
-  .map { height: 260px; }
+  .map { height: 58vh; }
+  .feed-controls { gap: 0.5rem; }
+  .feed-controls select,
+  .feed-controls input { flex: 1 1 130px; min-width: 0; }
+  .feed-controls input[type='number'] { width: auto; }
+  .feed-controls .small { flex-basis: 100%; }
   .request-row { flex-direction: column; align-items: stretch; }
   .form-actions { flex-direction: column; }
   .form-actions .btn { width: 100%; }
+
+  /* bigger, thumb-friendly map zoom buttons */
+  .leaflet-touch .leaflet-bar a { width: 36px; height: 36px; line-height: 36px; font-size: 20px; }
+
+  .toast { bottom: calc(80px + env(safe-area-inset-bottom)); } /* clear the bottom bar */
 }
