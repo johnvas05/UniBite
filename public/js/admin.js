@@ -13,23 +13,26 @@ function renderAdminView(container) {
       ]);
 
       statsRow.append(
-        statCard('🍽️', stats.monthly_portions, 'Μερίδες τον τελευταίο μήνα'),
-        statCard('📦', stats.all_time_portions, 'Μερίδες συνολικά'),
-        statCard('👥', stats.total_students, 'Εγγεγραμμένοι φοιτητές'),
-        statCard('📢', stats.active_listings, 'Ενεργές αγγελίες')
+        statCard('utensils', stats.monthly_portions, 'Μερίδες τον τελευταίο μήνα'),
+        statCard('soup', stats.all_time_portions, 'Μερίδες συνολικά'),
+        statCard('users', stats.total_students, 'Εγγεγραμμένοι φοιτητές'),
+        statCard('megaphone', stats.active_listings, 'Ενεργές αγγελίες')
       );
 
       const donorRows = leaderboard.top_donors.map((d, i) =>
         el('tr', {},
           el('td', {}, medal(i)),
-          el('td', {}, d.display_name + (i === 0 ? ' — Top Donor 🏆' : '')),
+          el('td', {}, i === 0
+            ? el('span', { class: 'top-donor' }, d.display_name, el('span', { class: 'tag-top' }, 'Top Donor'))
+            : d.display_name),
           el('td', {}, `${d.portions_given} μερίδες`))
       );
       const mealRows = leaderboard.top_meals.map((m, i) =>
         el('tr', {},
           el('td', {}, medal(i)),
           el('td', {}, `${m.title} (${m.cook_name})`),
-          el('td', {}, `★ ${m.avg_stars} (${m.num_ratings} αξιολ.)`))
+          el('td', {}, el('span', { class: 'inline-rating' },
+            icon('star', { size: 14, fill: true }), ` ${m.avg_stars} (${m.num_ratings} αξιολ.)`)))
       );
 
       boards.append(
@@ -41,9 +44,9 @@ function renderAdminView(container) {
     }
   })();
 
-  function statCard(icon, value, label) {
+  function statCard(iconName, value, label) {
     return el('div', { class: 'card stat-card' },
-      el('div', { class: 'stat-icon' }, icon),
+      el('div', { class: 'stat-icon' }, icon(iconName, { size: 30 })),
       el('div', { class: 'stat-value' }, String(value)),
       el('div', { class: 'muted small' }, label)
     );
@@ -61,6 +64,9 @@ function renderAdminView(container) {
   }
 
   function medal(i) {
-    return ['🥇', '🥈', '🥉'][i] || String(i + 1);
+    if (i === 0) return icon('trophy', { size: 20, cls: 'medal-gold' });
+    if (i === 1) return icon('medal', { size: 20, cls: 'medal-silver' });
+    if (i === 2) return icon('medal', { size: 20, cls: 'medal-bronze' });
+    return el('span', { class: 'muted' }, String(i + 1));
   }
 }

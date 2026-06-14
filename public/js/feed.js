@@ -1,5 +1,12 @@
 // Consumer views: feed with list + map (C1), reservations (C2), ratings (C3)
-const feedState = { refPoint: null, maxKm: '', limit: '' };
+const feedState = { refPoint: null, maxKm: '', limit: '', q: '', sort: 'newest', available: false, exclude: new Set() };
+
+// A labeled control: a small caption that stays visible above the input,
+// so the field's description doesn't vanish once you start typing.
+function filterField(labelText, controlEl) {
+  return el('label', { class: 'filter-field' },
+    el('span', { class: 'filter-label' }, labelText), controlEl);
+}
 
 const STATUS_LABELS = {
   active: 'Διαθέσιμο',
@@ -15,22 +22,86 @@ function renderFeedView(container) {
   const cards = el('div', { class: 'cards-grid' });
   const mapDiv = el('div', { id: 'feed-map', class: 'map' });
 
+  // --- search ---
+  const searchInput = el('input', { type: 'search', placeholder: 'Τίτλος, σημειώσεις ή μάγειρας…', value: feedState.q });
+
+  // --- sort ---
+  const sortSelect = el('select', {},
+    el('option', { value: 'newest' }, 'Νεότερα πρώτα'),
+    el('option', { value: 'distance' }, 'Κοντινότερα'),
+    el('option', { value: 'rating' }, 'Καλύτερη βαθμολογία'),
+    el('option', { value: 'portions' }, 'Περισσότερες μερίδες')
+  );
+  sortSelect.value = feedState.sort;
+
+  // --- distance ---
   const maxKmSelect = el('select', {},
-    el('option', { value: '' }, 'Χωρίς όριο απόστασης'),
+    el('option', { value: '' }, 'Παντού'),
     ...[1, 2, 5, 10].map((km) => el('option', { value: km }, `Έως ${km} km`))
   );
   maxKmSelect.value = feedState.maxKm;
-  const limitInput = el('input', { type: 'number', min: 1, max: 50, placeholder: 'Μέγ. πλήθος', value: feedState.limit });
-  const locBtn = el('button', { class: 'btn' }, '📍 Η θέση μου');
-  const hint = el('span', { class: 'muted small' },
-    feedState.refPoint ? 'Σημείο αναφοράς ορισμένο — ταξινόμηση κατά απόσταση' : 'Κάντε κλικ στον χάρτη για σημείο αναφοράς');
 
-  const controls = el('div', { class: 'feed-controls card' }, locBtn, maxKmSelect, limitInput, hint);
+  // --- max results ---
+  const limitInput = el('input', { type: 'number', min: 1, max: 50, placeholder: 'Όλα', value: feedState.limit });
+
+  // --- only available toggle ---
+  const availableInput = el('input', { type: 'checkbox' });
+  availableInput.checked = feedState.available;
+  const availableField = el('label', { class: 'filter-check' },
+    availableInput, el('span', {}, 'Μόνο διαθέσιμα'));
+
+  const locBtn = el('button', { class: 'btn with-icon' }, icon('locate-fixed'), 'Η θέση μου');
+
+  // --- exclude allergens (chips, filled async) ---
+  const allergenChips = el('div', { class: 'allergen-filter' });
+  const hint = el('span', { class: 'muted small feed-hint' },
+    feedState.refPoint ? 'Σημείο αναφοράς ορισμένο — μπορείς να ταξινομήσεις κατά απόσταση.' : 'Κάνε κλικ στον χάρτη ή πάτα «Η θέση μου» για ταξινόμηση κατά απόσταση.');
+
+  const controls = el('div', { class: 'feed-controls card' },
+    el('div', { class: 'filter-row' },
+      filterField('Αναζήτηση', searchInput),
+      filterField('Ταξινόμηση', sortSelect),
+      filterField('Απόσταση', maxKmSelect),
+      filterField('Μέγ. αποτελέσματα', limitInput),
+      el('div', { class: 'filter-field' },
+        el('span', { class: 'filter-label' }, 'Σημείο αναφοράς'), locBtn),
+      el('div', { class: 'filter-field' },
+        el('span', { class: 'filter-label' }, 'Διαθεσιμότητα'), availableField)
+    ),
+    el('div', { class: 'filter-row allergen-row' },
+      el('span', { class: 'filter-label' }, 'Χωρίς αλλεργιογόνα'), allergenChips),
+    hint
+  );
+
   container.append(
     el('h2', {}, 'Διαθέσιμα γεύματα'),
     controls,
     el('div', { class: 'feed-layout' }, mapDiv, cards)
   );
+
+  // build allergen exclusion chips
+  api('/allergens').then((allergens) => {
+    allergens.forEach((a) => {
+      const chip = el('button', { type: 'button', class: 'chip' + (feedState.exclude.has(a.id) ? ' on' : '') }, a.name);
+      chip.addEventListener('click', () => {
+        if (feedState.exclude.has(a.id)) feedState.exclude.delete(a.id);
+        else feedState.exclude.add(a.id);
+        chip.classList.toggle('on');
+        load();
+      });
+      allergenChips.append(chip);
+    });
+  }).catch(() => { allergenChips.remove(); });
+
+  // debounce search typing so we don't hit the API on every keystroke
+  let searchTimer;
+  searchInput.addEventListener('input', () => {
+    feedState.q = searchInput.value;
+    clearTimeout(searchTimer);
+    searchTimer = setTimeout(load, 300);
+  });
+  sortSelect.addEventListener('change', () => { feedState.sort = sortSelect.value; load(); });
+  availableInput.addEventListener('change', () => { feedState.available = availableInput.checked; load(); });
 
   const map = L.map(mapDiv).setView([37.9779, 23.7850], 14);
   L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -44,7 +115,8 @@ function renderFeedView(container) {
     feedState.refPoint = { lat, lng };
     if (refMarker) refMarker.remove();
     refMarker = L.marker([lat, lng], { opacity: 0.7 }).addTo(map).bindPopup('Σημείο αναφοράς');
-    hint.textContent = 'Σημείο αναφοράς ορισμένο — ταξινόμηση κατά απόσταση';
+    hint.textContent = 'Σημείο αναφοράς ορισμένο — ταξινόμηση κατά απόσταση.';
+    if (feedState.sort === 'newest') { feedState.sort = 'distance'; sortSelect.value = 'distance'; }
     load();
   }
 
@@ -69,13 +141,17 @@ function renderFeedView(container) {
       if (feedState.maxKm) params.set('maxKm', feedState.maxKm);
     }
     if (feedState.limit) params.set('limit', feedState.limit);
+    if (feedState.q.trim()) params.set('q', feedState.q.trim());
+    if (feedState.sort) params.set('sort', feedState.sort);
+    if (feedState.available) params.set('available', '1');
+    if (feedState.exclude.size) params.set('excludeAllergens', [...feedState.exclude].join(','));
     try {
       const listings = await api('/listings?' + params);
       markers.forEach((m) => m.remove());
       markers = listings.map((l) => {
         const marker = L.circleMarker([l.pickup_lat, l.pickup_lng], {
           radius: 10,
-          color: l.status === 'active' ? '#2e7d32' : '#9e9e9e',
+          color: l.status === 'active' ? '#006600' : '#9e9e9e',
           fillOpacity: 0.7,
         }).addTo(map);
         marker.bindPopup(`<b>${l.title}</b><br>${l.pickup_location}<br>${l.status === 'active' ? l.portions_available + ' μερίδες' : 'Εξαντλήθηκε'}`);
@@ -97,18 +173,20 @@ function listingCard(l, reload) {
   const card = el('article', { class: 'card listing-card' + (l.status === 'inactive' ? ' inactive' : '') },
     l.photo_url
       ? el('img', { src: l.photo_url, alt: l.title, class: 'card-photo' })
-      : el('div', { class: 'card-photo placeholder' }, '🍽️'),
+      : el('div', { class: 'card-photo placeholder' }, icon('utensils-crossed', { size: 42 })),
     el('div', { class: 'card-body' },
       el('div', { class: 'card-top' },
         el('h3', {}, l.title),
         el('span', { class: 'badge ' + l.status }, STATUS_LABELS[l.status] || l.status)
       ),
-      el('p', { class: 'muted small' }, `από ${l.cook_name}` + (l.avg_rating ? ` · ★ ${l.avg_rating}` : '')),
+      el('p', { class: 'muted small cook-line' },
+        `από ${l.cook_name}`,
+        l.avg_rating ? el('span', { class: 'inline-rating' }, icon('star', { size: 14, fill: true }), ` ${l.avg_rating}`) : null),
       l.notes ? el('p', { class: 'notes' }, l.notes) : null,
-      l.allergens ? el('p', { class: 'allergens' }, '⚠️ Αλλεργιογόνα: ' + l.allergens) : null,
-      el('p', { class: 'small' }, `📍 ${l.pickup_location}`),
-      el('p', { class: 'small' }, `🕒 ${l.pickup_time}`),
-      l.distance_km != null ? el('p', { class: 'small' }, `📏 ${Number(l.distance_km).toFixed(1)} km`) : null,
+      l.allergens ? el('p', { class: 'allergens info-line' }, icon('triangle-alert', { size: 15 }), ' Αλλεργιογόνα: ' + l.allergens) : null,
+      el('p', { class: 'small info-line' }, icon('map-pin', { size: 15 }), ' ' + l.pickup_location),
+      el('p', { class: 'small info-line' }, icon('clock', { size: 15 }), ' ' + l.pickup_time),
+      l.distance_km != null ? el('p', { class: 'small info-line' }, icon('ruler', { size: 15 }), ` ${Number(l.distance_km).toFixed(1)} km`) : null,
       el('p', { class: 'portions' }, l.status === 'active' ? `${l.portions_available} διαθέσιμες μερίδες` : 'Καμία διαθέσιμη μερίδα')
     )
   );
@@ -117,7 +195,7 @@ function listingCard(l, reload) {
     btn.addEventListener('click', async () => {
       try {
         await api('/requests', { method: 'POST', body: { listing_id: l.id } });
-        toast('Το αίτημα στάλθηκε στον μάγειρα! 🎉');
+        toast('Το αίτημα στάλθηκε στον μάγειρα!');
         if (reload) reload();
       } catch (err) {
         toast(err.message, true);
@@ -144,23 +222,25 @@ function renderMyRequestsView(container) {
       const row = el('div', { class: 'card request-row' },
         el('div', {},
           el('strong', {}, r.listing_title),
-          el('p', { class: 'muted small' }, `Μάγειρας: ${r.cook_name} · 📍 ${r.pickup_location} · 🕒 ${r.pickup_time}`)
+          el('p', { class: 'muted small info-line wrap' },
+            `Μάγειρας: ${r.cook_name}`,
+            el('span', { class: 'info-sep' }, icon('map-pin', { size: 14 }), ' ' + r.pickup_location),
+            el('span', { class: 'info-sep' }, icon('clock', { size: 14 }), ' ' + r.pickup_time))
         ),
         el('span', { class: 'badge ' + r.status }, STATUS_LABELS[r.status] || r.status)
       );
       if (r.status === 'picked_up') {
-        row.append(r.my_rating
-          ? el('span', { class: 'stars' }, '★'.repeat(r.my_rating) + '☆'.repeat(5 - r.my_rating))
-          : ratingWidget(r.id, load));
+        row.append(r.my_rating ? starRating(r.my_rating) : ratingWidget(r.id, load));
       }
       list.append(row);
     }
   }
 
   function ratingWidget(requestId, reload) {
-    const wrap = el('div', { class: 'stars rate' });
-    for (let s = 1; s <= 5; s++) {
-      wrap.append(el('button', {
+    const starsWrap = el('div', { class: 'rate-stars' });
+    // descending DOM order (5→1); row-reverse renders them 1→5 left-to-right
+    for (let s = 5; s >= 1; s--) {
+      starsWrap.append(el('button', {
         class: 'star-btn',
         title: `${s}/5`,
         onclick: async () => {
@@ -172,11 +252,69 @@ function renderMyRequestsView(container) {
             toast(err.message, true);
           }
         },
-      }, '☆'));
+      }, icon('star', { size: 22 })));
     }
-    wrap.prepend(el('span', { class: 'small muted' }, 'Βαθμολογήστε: '));
-    return wrap;
+    return el('div', { class: 'rate' }, el('span', { class: 'small muted' }, 'Βαθμολογήστε:'), starsWrap);
   }
 
   load();
+}
+
+// Guest landing dashboard — shown to logged-out visitors instead of the feed.
+function renderHomeView(container) {
+  const heroStats = el('div', { class: 'hero-stats' });
+
+  container.append(
+    el('section', { class: 'hero' },
+      el('div', { class: 'hero-badge' }, icon('soup', { size: 38 })),
+      el('h1', { class: 'hero-title' }, 'Σπιτικό φαγητό, ', el('span', { class: 'accent' }, 'μοιρασμένο')),
+      el('p', { class: 'hero-sub' },
+        'Το UniBite φέρνει κοντά φοιτητές που μαγειρεύουν παραπάνω με φοιτητές που πεινάνε. ' +
+        'Βρες ή πρόσφερε μερίδες δίπλα σου — δωρεάν, με ένα δίκαιο σύστημα πόντων.'),
+      el('div', { class: 'hero-actions' },
+        el('button', { class: 'btn big bright', onclick: () => navigate('auth') }, 'Ξεκίνα δωρεάν'),
+        el('button', { class: 'btn big outline with-icon', onclick: () => navigate('feed') },
+          icon('utensils'), 'Περιήγηση στα γεύματα')),
+      heroStats
+    ),
+    el('section', { class: 'home-section' },
+      el('h2', {}, 'Πώς λειτουργεί'),
+      el('div', { class: 'steps-grid' },
+        homeStep('utensils-crossed', 'Δημοσίευσε ή βρες',
+          'Ανέβασε ένα γεύμα που περίσσεψε ή ψάξε διαθέσιμες μερίδες στον χάρτη.'),
+        homeStep('map-pin', 'Δέσμευσε κοντά σου',
+          'Φιλτράρισε κατά απόσταση, αλλεργιογόνα ή βαθμολογία και δέσμευσε με ένα κλικ.'),
+        homeStep('star', 'Παράλαβε & βαθμολόγησε',
+          'Πάρε το φαγητό σου από το σημείο παραλαβής και βαθμολόγησε τον μάγειρα.'))
+    ),
+    el('section', { class: 'home-section' },
+      el('h2', {}, 'Σύστημα πόντων'),
+      el('div', { class: 'card rules-card' },
+        el('ul', { class: 'rules' },
+          el('li', {}, 'Ξεκινάς με 5 πόντους με την εγγραφή.'),
+          el('li', {}, 'Κάθε δέσμευση μερίδας κοστίζει 1 πόντο.'),
+          el('li', {}, '+1 πόντος για κάθε μερίδα που προσφέρεις· +1 επιπλέον αν βαθμολογηθείς πάνω από 3/5.'),
+          el('li', {}, 'Αν δεν παραλάβεις ή δεν βαθμολογήσεις εγκαίρως, χάνεις 1 πόντο.')))
+    )
+  );
+
+  api('/listings/summary').then((s) => {
+    heroStats.append(
+      heroStat(s.active_listings, 'διαθέσιμα γεύματα'),
+      heroStat(s.students, 'φοιτητές'),
+      heroStat(s.portions_shared, 'μερίδες μοιράστηκαν')
+    );
+  }).catch(() => {});
+
+  function homeStep(iconName, title, text) {
+    return el('div', { class: 'card step-card' },
+      el('div', { class: 'step-icon' }, icon(iconName, { size: 26 })),
+      el('h3', {}, title),
+      el('p', { class: 'muted' }, text));
+  }
+  function heroStat(value, label) {
+    return el('div', { class: 'hero-stat' },
+      el('div', { class: 'hero-stat-value' }, String(value ?? 0)),
+      el('div', { class: 'hero-stat-label' }, label));
+  }
 }

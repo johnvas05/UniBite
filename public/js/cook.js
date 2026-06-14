@@ -4,9 +4,9 @@ function renderMyListingsView(container) {
   container.append(
     el('div', { class: 'view-head' },
       el('h2', {}, 'Οι αγγελίες μου'),
-      el('button', { class: 'btn primary', onclick: () => navigate('listingForm') }, '+ Νέα αγγελία')
+      el('button', { class: 'btn primary with-icon', onclick: () => navigate('listingForm') }, icon('plus'), 'Νέα αγγελία')
     ),
-    el('p', { class: 'muted' }, `Έχετε ⭐ ${currentUser.points} πόντους από προσφορές γευμάτων.`)
+    el('p', { class: 'muted points-line' }, 'Έχετε ', icon('star', { size: 15, fill: true }), ` ${currentUser.points} πόντους από προσφορές γευμάτων.`)
   );
   const grid = el('div', { class: 'cards-grid' });
   container.append(grid);
@@ -20,9 +20,9 @@ function renderMyListingsView(container) {
       const actions = el('div', { class: 'card-actions' });
       if (l.status !== 'deleted') {
         actions.append(
-          el('button', { class: 'btn', onclick: () => navigate('listingForm', l) }, '✏️ Επεξεργασία'),
+          el('button', { class: 'btn with-icon', onclick: () => navigate('listingForm', l) }, icon('pencil'), 'Επεξεργασία'),
           el('button', {
-            class: 'btn danger',
+            class: 'btn danger with-icon',
             onclick: async () => {
               if (!confirm('Σίγουρα θέλετε να διαγράψετε την αγγελία;')) return;
               try {
@@ -31,7 +31,7 @@ function renderMyListingsView(container) {
                 load();
               } catch (err) { toast(err.message, true); }
             },
-          }, '🗑 Διαγραφή')
+          }, icon('trash-2'), 'Διαγραφή')
         );
       } else {
         card.classList.add('inactive');
@@ -126,7 +126,7 @@ function renderListingFormView(container, listing) {
         method: isEdit ? 'PUT' : 'POST',
         body: data,
       });
-      toast(isEdit ? 'Η αγγελία ενημερώθηκε' : 'Η αγγελία δημοσιεύτηκε! 🎉');
+      toast(isEdit ? 'Η αγγελία ενημερώθηκε' : 'Η αγγελία δημοσιεύτηκε!');
       navigate('mine');
     } catch (err) {
       toast(err.message, true);
@@ -138,7 +138,7 @@ function renderListingFormView(container, listing) {
 function renderInboxView(container) {
   container.append(
     el('h2', {}, 'Αιτήματα για τις αγγελίες μου'),
-    el('p', { class: 'muted' }, `Έχετε ⭐ ${currentUser.points} πόντους.`)
+    el('p', { class: 'muted points-line' }, 'Έχετε ', icon('star', { size: 15, fill: true }), ` ${currentUser.points} πόντους.`)
   );
   const list = el('div', { class: 'stack' });
   container.append(list);
@@ -152,13 +152,13 @@ function renderInboxView(container) {
       const actions = el('div', { class: 'card-actions' });
       if (r.status === 'pending') {
         actions.append(
-          actionBtn('✅ Αποδοχή', 'primary', `/requests/${r.id}/approve`, load),
-          actionBtn('❌ Απόρριψη', 'danger', `/requests/${r.id}/reject`, load)
+          actionBtn('check', 'Αποδοχή', 'primary', `/requests/${r.id}/approve`, load),
+          actionBtn('x', 'Απόρριψη', 'danger', `/requests/${r.id}/reject`, load)
         );
       } else if (r.status === 'approved') {
         actions.append(
-          actionBtn('📦 Παρελήφθη', 'primary', `/requests/${r.id}/pickup`, load),
-          actionBtn('🚫 Δεν παρελήφθη', 'danger', `/requests/${r.id}/noshow`, load)
+          actionBtn('package-check', 'Παρελήφθη', 'primary', `/requests/${r.id}/pickup`, load),
+          actionBtn('ban', 'Δεν παρελήφθη', 'danger', `/requests/${r.id}/noshow`, load)
         );
       }
       list.append(el('div', { class: 'card request-row' },
@@ -173,16 +173,16 @@ function renderInboxView(container) {
     }
   }
 
-  function actionBtn(label, kind, path, reload) {
+  function actionBtn(iconName, label, kind, path, reload) {
     return el('button', {
-      class: 'btn ' + kind,
+      class: 'btn with-icon ' + kind,
       onclick: async () => {
         try {
           await api(path, { method: 'POST' });
           reload();
         } catch (err) { toast(err.message, true); }
       },
-    }, label);
+    }, icon(iconName), label);
   }
 
   load();
