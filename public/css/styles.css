@@ -42,7 +42,7 @@ img { max-width: 100%; }
   position: sticky;
   top: 0;
   z-index: 1100;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;   /* topbar stays one row; the nav scrolls instead of wrapping */
 }
 
 .brand {
@@ -58,8 +58,12 @@ img { max-width: 100%; }
   display: flex;
   gap: 0.3rem;
   flex: 1;
-  flex-wrap: wrap;
+  min-width: 0;            /* allow the nav to shrink below its content width */
+  flex-wrap: nowrap;
+  overflow-x: auto;        /* very long nav (admin on a small laptop) scrolls, never wraps */
+  scrollbar-width: none;
 }
+.main-nav::-webkit-scrollbar { display: none; }
 
 .main-nav a {
   text-decoration: none;
@@ -388,7 +392,7 @@ input.invalid {
 }
 
 .board table { width: 100%; border-collapse: collapse; }
-.board th, .board td { text-align: left; padding: 0.45rem 0.5rem; border-bottom: 1px solid var(--border); }
+.board th, .board td { text-align: left; padding: 0.45rem 0.5rem; border-bottom: 1px solid var(--border); overflow-wrap: anywhere; }
 .board th { font-size: 0.85rem; color: var(--muted); }
 
 /* ---------- Toast ---------- */
@@ -426,25 +430,28 @@ input.invalid {
 /* ---------- Tablet (≤ 900px) ---------- */
 @media (max-width: 900px) {
   .feed-layout { grid-template-columns: 1fr; }
-  .map { height: clamp(280px, 45vh, 460px); position: static; }
+  .map {
+    height: clamp(280px, 45vh, 460px);
+    /* Leaflet forces position:relative inline (beats our `static`), so the desktop
+       sticky `top: 70px` would shift the map 70px down into the cards below it and
+       paint over them. Zero the offset so the map sits in its normal place. */
+    position: static;
+    top: 0;
+    z-index: auto;
+  }
   .boards { grid-template-columns: 1fr; }
 }
 
-/* ---------- Phones (≤ 760px): top tabs → fixed bottom tab bar ---------- */
-@media (max-width: 760px) {
-  .topbar {
-    flex-wrap: nowrap;
-    gap: 0.5rem;
-    padding: 0.55rem 0.9rem;
-  }
-  .brand { font-size: 1.25rem; }
-  #main-nav { display: none; }               /* desktop tabs hidden on phones */
-  .user-box { margin-left: auto; gap: 0.5rem; }
-  .user-name { display: none; }
+/* ---------- Tablets & small laptops (≤ 1024px): top tabs → fixed bottom tab bar ----------
+   The horizontal top nav can't fit the long Greek labels until ~1150px, so below that it used
+   to wrap into an ugly multi-row topbar. Everything from small-laptop width down uses the same
+   polished bottom tab bar as phones. */
+@media (max-width: 1024px) {
+  #main-nav { display: none; }               /* desktop top tabs hidden */
   .user-box .btn { display: none; }          /* login/logout live in the bottom bar */
 
   /* leave room for the fixed bottom bar (+ iOS home indicator) */
-  main { padding: 0.9rem 0.9rem calc(74px + env(safe-area-inset-bottom)); }
+  main { padding-bottom: calc(74px + env(safe-area-inset-bottom)); }
 
   .bottom-nav {
     display: flex;
@@ -461,6 +468,7 @@ input.invalid {
   .bottom-nav .nav-link {
     flex: 1 1 0;
     min-width: 0;
+    max-width: 150px;       /* keep tabs tab-sized on wide tablets instead of stretching */
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -469,7 +477,7 @@ input.invalid {
     border-radius: 12px;
     text-decoration: none;
     color: var(--muted);
-    font-size: 0.68rem;
+    font-size: 0.72rem;
     font-weight: 700;
   }
   .bottom-nav .nav-icon { font-size: 1.35rem; line-height: 1; }
@@ -481,9 +489,26 @@ input.invalid {
   }
   .bottom-nav .nav-link.active { color: var(--primary-dark); background: var(--primary-soft); }
 
-  /* content tweaks */
+  /* bigger, thumb-friendly map zoom buttons */
+  .leaflet-touch .leaflet-bar a { width: 36px; height: 36px; line-height: 36px; font-size: 20px; }
+
+  .toast { bottom: calc(80px + env(safe-area-inset-bottom)); } /* clear the bottom bar */
+}
+
+/* ---------- Phones (≤ 760px): compact topbar + single-column content ---------- */
+@media (max-width: 760px) {
+  .topbar {
+    gap: 0.5rem;
+    padding: 0.55rem 0.9rem;
+  }
+  .brand { font-size: 1.25rem; }
+  .user-box { margin-left: auto; gap: 0.5rem; }
+  .user-name { display: none; }
+
+  main { padding-left: 0.9rem; padding-right: 0.9rem; }
+
   .cards-grid { grid-template-columns: 1fr; }
-  .map { height: 58vh; }
+  .map { height: clamp(220px, 38vh, 340px); }
   .feed-controls { gap: 0.5rem; }
   .feed-controls select,
   .feed-controls input { flex: 1 1 130px; min-width: 0; }
@@ -492,9 +517,4 @@ input.invalid {
   .request-row { flex-direction: column; align-items: stretch; }
   .form-actions { flex-direction: column; }
   .form-actions .btn { width: 100%; }
-
-  /* bigger, thumb-friendly map zoom buttons */
-  .leaflet-touch .leaflet-bar a { width: 36px; height: 36px; line-height: 36px; font-size: 20px; }
-
-  .toast { bottom: calc(80px + env(safe-area-inset-bottom)); } /* clear the bottom bar */
 }
