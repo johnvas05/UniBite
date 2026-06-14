@@ -96,7 +96,8 @@ INSERT INTO users (username, email, phone, password_hash, first_name, last_name,
   ('admin',   'admin@unibite.gr',   '2107722000', '$2b$10$jucztNPdrdCVStnqlFOaFesVb.KKPjw16.CFCcAxNrQHtYob.u5gC', 'Διαχειριστής', '', 'Διαχειριστής', 'admin', 0),
   ('maria',   'maria@mail.ntua.gr',   '6941234567', '$2b$10$jucztNPdrdCVStnqlFOaFesVb.KKPjw16.CFCcAxNrQHtYob.u5gC', 'Μαρία', 'Παπαδοπούλου', 'Μαρία Παπαδοπούλου', 'student', 8),
   ('giorgos', 'giorgos@mail.ntua.gr', '6957654321', '$2b$10$jucztNPdrdCVStnqlFOaFesVb.KKPjw16.CFCcAxNrQHtYob.u5gC', 'Γιώργος', 'Νικολάου', 'Γιώργος Νικολάου', 'student', 5),
-  ('eleni',   'eleni@mail.ntua.gr',   '6909876543', '$2b$10$jucztNPdrdCVStnqlFOaFesVb.KKPjw16.CFCcAxNrQHtYob.u5gC', 'Ελένη', 'Δημητρίου', 'Ελένη Δημητρίου', 'student', 5);
+  ('eleni',   'eleni@mail.ntua.gr',   '6909876543', '$2b$10$jucztNPdrdCVStnqlFOaFesVb.KKPjw16.CFCcAxNrQHtYob.u5gC', 'Ελένη', 'Δημητρίου', 'Ελένη Δημητρίου', 'student', 5),
+  ('kostas',  'kostas@upnet.gr',      '6971112233', '$2b$10$jucztNPdrdCVStnqlFOaFesVb.KKPjw16.CFCcAxNrQHtYob.u5gC', 'Κώστας', 'Αγγελόπουλος', 'Κώστας Αγγελόπουλος', 'student', 6);
 
 -- Seed listings around the Zografou university campus (Athens)
 INSERT INTO listings (cook_id, title, notes, portions_total, portions_available,
@@ -110,6 +111,22 @@ INSERT INTO listings (cook_id, title, notes, portions_total, portions_available,
   (4, 'Γεμιστά', 'Ντομάτες και πιπεριές γεμιστές, νηστίσιμα.',
    3, 3, 'Κεντρική Βιβλιοθήκη ΕΜΠ', 37.977900, 23.785300, 'Σήμερα 17:00 - 19:00', NOW());
 
+-- Seed listings around the University of Patras (Rio campus) + Patras city centre.
+-- Coordinates spread ~0.1–6.6 km apart so the distance (maxKm) filter has something to do:
+-- listings 5–7 cluster on the Rio campus, listing 8 is downtown (~6.6 km from campus).
+INSERT INTO listings (cook_id, title, notes, portions_total, portions_available,
+                      pickup_location, pickup_lat, pickup_lng, pickup_time, created_at) VALUES
+  (5, 'Μακαρόνια με κιμά', 'Μεγάλη μερίδα, με φρεσκοτριμμένο κεφαλοτύρι.',
+   6, 5, 'Φοιτητική Εστία Πανεπιστημίου Πατρών, Ρίο', 38.288500, 21.788600, 'Σήμερα 19:00 - 21:00', NOW()),
+  (5, 'Μπριάμ στον φούρνο', 'Νηστίσιμο, με πατάτες και κολοκυθάκια.',
+   4, 4, 'Τμήμα Πολιτικών Μηχανικών, Πανεπιστήμιο Πατρών', 38.290200, 21.787000, 'Σήμερα 14:00 - 16:00', NOW()),
+  (5, 'Ρεβύθια γιαχνί', 'Σπιτικά, με πολύ λεμόνι. Χωρίς γλουτένη.',
+   5, 3, 'Βιβλιοθήκη & Κέντρο Πληροφόρησης, Ρίο', 38.291000, 21.788000, 'Αύριο 12:30 - 14:00', NOW()),
+  (5, 'Τυρόπιτα κουρού', 'Φρέσκια, ψημένη το πρωί. Παραλαβή στο κέντρο.',
+   8, 8, 'Πλατεία Γεωργίου Α΄, Κέντρο Πάτρας', 38.246600, 21.734600, 'Σήμερα 11:00 - 13:00', NOW());
+
 INSERT INTO listing_allergens (listing_id, allergen_id) VALUES
   (1, 1), (1, 3), (1, 7),  -- παστίτσιο: γλουτένη, αυγά, γάλα
-  (3, 9);                  -- κοτόπουλο: σέλινο
+  (3, 9),                  -- κοτόπουλο: σέλινο
+  (5, 1), (5, 7),          -- μακαρόνια με κιμά: γλουτένη, γάλα
+  (8, 1), (8, 3), (8, 7);  -- τυρόπιτα: γλουτένη, αυγά, γάλα
