@@ -7,7 +7,7 @@
 
 - **Backend:** Node.js + Express, express-session (αυθεντικοποίηση), bcrypt, multer (φωτογραφίες)
 - **Βάση:** MySQL / MariaDB (`schema.sql` περιέχει DDL + δοκιμαστικά δεδομένα)
-- **Front-end:** Vanilla JavaScript SPA (DOM manipulation, fetch API), Leaflet + OpenStreetMap, responsive CSS (Flexbox/Grid/media queries)
+- **Front-end:** Vanilla JavaScript SPA (DOM manipulation, fetch API), Leaflet + OpenStreetMap, responsive CSS (Flexbox/Grid/media queries) — top nav σε desktop, bottom tab bar σε tablet/κινητό
 
 ## Εκτέλεση
 
@@ -21,7 +21,11 @@
 | Χρήστης | Ρόλος |
 |---|---|
 | `admin` | Διαχειριστής |
-| `maria`, `giorgos`, `eleni` | Φοιτητές |
+| `maria`, `giorgos`, `eleni` | Φοιτητές (Αθήνα) |
+| `kostas` | Φοιτητής (Πάτρα) |
+
+Οι δοκιμαστικές αγγελίες καλύπτουν Αθήνα (Ζωγράφου) και Πάτρα (Ρίο + κέντρο), ώστε
+να ελέγχεται το φιλτράρισμα κατά απόσταση (`maxKm`) από διαφορετικά σημεία αναφοράς.
 
 ## Export βάσης (παραδοτέο)
 
