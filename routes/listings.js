@@ -33,13 +33,15 @@ const BASE_SELECT = `
     FROM listings l JOIN users u ON u.id = l.cook_id`;
 
 // GET /api/listings — feed of active+inactive listings (C1)
-// Optional: ?lat=&lng=&maxKm=&limit= for distance filter/sort
+// Filters (all optional): lat,lng (+maxKm) distance · q text search ·
+//   available=1 only with portions left · excludeAllergens=ids · sort · limit
 router.get('/', async (req, res) => {
-  const { lat, lng, maxKm, limit } = req.query;
+  const { lat, lng, maxKm, limit, q, sort, available, excludeAllergens } = req.query;
+  const hasPoint = lat && lng;
   let sql = BASE_SELECT;
   const params = [];
 
-  if (lat && lng) {
+  if (hasPoint) {
     // Haversine distance (km) from the given point to each pickup location
     sql = sql.replace('AS avg_rating', `AS avg_rating,
       6371 * 2 * ASIN(SQRT(
@@ -49,12 +51,35 @@ router.get('/', async (req, res) => {
     params.push(Number(lat), Number(lat), Number(lng));
   }
 
-  sql += ` WHERE l.created_at >= NOW() - INTERVAL 48 HOUR`;
-  if (lat && lng && maxKm) {
-    sql += ` HAVING distance_km <= ?`;
+  const where = ['l.created_at >= NOW() - INTERVAL 48 HOUR'];
+  if (q && q.trim()) {
+    where.push('(l.title LIKE ? OR l.notes LIKE ? OR u.display_name LIKE ?)');
+    const like = '%' + q.trim() + '%';
+    params.push(like, like, like);
+  }
+  if (available === '1') where.push('l.portions_available > 0');
+  const exclude = String(excludeAllergens || '').split(',').map(Number).filter(Boolean);
+  if (exclude.length) {
+    where.push(`NOT EXISTS (SELECT 1 FROM listing_allergens la
+      WHERE la.listing_id = l.id AND la.allergen_id IN (${exclude.map(() => '?').join(',')}))`);
+    params.push(...exclude);
+  }
+  sql += ' WHERE ' + where.join(' AND ');
+
+  if (hasPoint && maxKm) {
+    sql += ' HAVING distance_km <= ?';
     params.push(Number(maxKm));
   }
-  sql += lat && lng ? ' ORDER BY distance_km ASC' : ' ORDER BY l.created_at DESC';
+
+  const chosen = sort || (hasPoint ? 'distance' : 'newest');
+  const orderBy = {
+    distance: hasPoint ? 'distance_km ASC' : 'l.created_at DESC',
+    rating: 'avg_rating IS NULL, avg_rating DESC',
+    portions: 'l.portions_available DESC',
+    newest: 'l.created_at DESC',
+  }[chosen] || 'l.created_at DESC';
+  sql += ' ORDER BY ' + orderBy;
+
   if (limit) {
     sql += ' LIMIT ?';
     params.push(Math.max(1, Math.min(100, Number(limit))));
@@ -63,6 +88,23 @@ router.get('/', async (req, res) => {
   try {
     const [rows] = await pool.query(sql, params);
     res.json(rows);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Σφάλμα διακομιστή' });
+  }
+});
+
+// GET /api/listings/summary — public counts for the guest landing page
+router.get('/summary', async (req, res) => {
+  try {
+    const [[summary]] = await pool.query(
+      `SELECT
+         (SELECT COUNT(*) FROM listings
+            WHERE created_at >= NOW() - INTERVAL 48 HOUR AND portions_available > 0) AS active_listings,
+         (SELECT COUNT(*) FROM users WHERE role = 'student') AS students,
+         (SELECT COUNT(*) FROM requests WHERE status = 'picked_up') AS portions_shared`
+    );
+    res.json(summary);
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Σφάλμα διακομιστή' });
