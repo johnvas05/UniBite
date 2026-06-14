@@ -4,7 +4,8 @@
   "description": "UniBite - Φοιτητική πλατφόρμα διαμοιρασμού φαγητού",
   "main": "server.js",
   "scripts": {
-    "start": "node server.js"
+    "start": "node server.js",
+    "shots": "node capture-screenshots.js"
   },
   "private": true,
   "dependencies": {
@@ -14,5 +15,8 @@
     "express-session": "^1.19.0",
     "multer": "^2.1.1",
     "mysql2": "^3.22.5"
+  },
+  "devDependencies": {
+    "playwright": "^1.60.0"
   }
 }

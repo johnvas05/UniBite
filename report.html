@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="el">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>UniBite — Συνοπτική Αναφορά</title>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <script>
+    mermaid.initialize({ startOnLoad: true, theme: 'neutral', securityLevel: 'loose' });
+  </script>
+  <style>
+    :root {
+      --green: #2c5740;
+      --green-light: #3f8f5a;
+      --soft: #e7f2ea;
+      --ink: #25302a;
+      --muted: #5d6a61;
+      --border: #d4ddcf;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      color: var(--ink);
+      line-height: 1.55;
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 2.5rem 2rem 4rem;
+      background: #fff;
+    }
+
+    h1 {
+      font-size: 2rem;
+      margin: 0 0 0.2rem;
+      color: var(--green);
+    }
+
+    h2 {
+      font-size: 1.35rem;
+      margin: 2.2rem 0 0.8rem;
+      color: var(--green);
+      border-bottom: 2px solid var(--soft);
+      padding-bottom: 0.3rem;
+    }
+
+    h3 {
+      font-size: 1.05rem;
+      margin: 1.3rem 0 0.4rem;
+      color: var(--green-light);
+    }
+
+    .subtitle {
+      color: var(--muted);
+      font-size: 1.05rem;
+      margin: 0 0 1.4rem;
+    }
+
+    .meta-box {
+      background: var(--soft);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 1rem 1.2rem;
+      margin: 1rem 0 1.5rem;
+    }
+
+    .fill {
+      color: #b3402e;
+      font-weight: 600;
+    }
+
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      margin: 0.6rem 0 1rem;
+      font-size: 0.92rem;
+    }
+
+    th,
+    td {
+      border: 1px solid var(--border);
+      padding: 0.45rem 0.6rem;
+      text-align: left;
+      vertical-align: top;
+    }
+
+    th {
+      background: var(--soft);
+    }
+
+    code {
+      background: #f1f5ef;
+      padding: 0.1rem 0.35rem;
+      border-radius: 4px;
+      font-size: 0.88em;
+    }
+
+    ul {
+      margin: 0.4rem 0 0.8rem;
+      padding-left: 1.4rem;
+    }
+
+    .mermaid {
+      text-align: center;
+      margin: 1rem 0;
+    }
+
+    figure {
+      margin: 1.2rem 0;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      overflow: hidden;
+      background: #fff;
+    }
+
+    figure img {
+      display: block;
+      width: 100%;
+      min-height: 240px;
+      background: #f0f4ec;
+      border-bottom: 1px dashed #9bb3a0;
+    }
+
+    figcaption {
+      padding: 0.6rem 0.9rem;
+      font-size: 0.9rem;
+      color: var(--muted);
+    }
+
+    figcaption b {
+      color: var(--ink);
+    }
+
+    .note {
+      background: #fff8e6;
+      border: 1px solid #f0e0a8;
+      border-radius: 8px;
+      padding: 0.7rem 1rem;
+      font-size: 0.9rem;
+    }
+
+    @media print {
+      body {
+        padding: 0;
+        max-width: none;
+      }
+
+      h2 {
+        break-after: avoid;
+      }
+
+      figure,
+      table {
+        break-inside: avoid;
+      }
+
+      a[href]:after {
+        content: "";
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <h1>UniBite</h1>
+  <p class="subtitle">Φοιτητική Πλατφόρμα Διαμοιρασμού Φαγητού — Συνοπτική Αναφορά</p>
+
+  <div class="meta-box">
+    <strong>Μάθημα:</strong> Προγραμματισμός και Συστήματα στον Παγκόσμιο Ιστό — Εργαστηριακή Άσκηση 2025/26<br>
+    <strong>Ομάδα:</strong>
+    <table>
+      <thead>
+        <tr>
+          <th>Ονοματεπώνυμο</th>
+          <th>Αριθμός Μητρώου</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="fill">[ ΒΑΣΙΛΕΙΟΥ ΙΩΑΝΝΗΣ ]</td>
+          <td class="fill">[ 1108356 ]</td>
+        </tr>
+        <tr>
+          <td class="fill">[ ΤΡΙΑΝΤΑΦΥΛΛΗΣ ΘΕΟΔΩΡΟΣ ]</td>
+          <td class="fill">[ 1112133 ]</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h2>1. Στόχος &amp; Περιγραφή</h2>
+  <p>
+    Το <strong>UniBite</strong> είναι μια διαδικτυακή πλατφόρμα διαμοιρασμού φαγητού για την πανεπιστημιακή
+    κοινότητα. Φοιτητές που μαγειρεύουν περισσευούμενες μερίδες (μάγειρες) δημοσιεύουν αγγελίες, και
+    συμφοιτητές τους (καταναλωτές) δεσμεύουν μερίδες χρησιμοποιώντας πόντους (credits). Με κάθε μερίδα που
+    προσφέρει κανείς μαζεύει πόντους, με τους οποίους μπορεί να ζητήσει μερίδες από άλλους — έτσι δεν
+    χρειάζεται να μαγειρεύουν όλοι κάθε μέρα.
+  </p>
+
+  <h2>2. Τεχνολογίες</h2>
+  <table>
+    <tr>
+      <th>Επίπεδο</th>
+      <th>Τεχνολογίες</th>
+    </tr>
+    <tr>
+      <td>Back-end</td>
+      <td>Node.js, Express 5, express-session (αυθεντικοποίηση με sessions), bcrypt (hashing κωδικών), multer (upload
+        φωτογραφιών)</td>
+    </tr>
+    <tr>
+      <td>Βάση Δεδομένων</td>
+      <td>MySQL / MariaDB (mysql2), σχεσιακό σχήμα με ξένα κλειδιά</td>
+    </tr>
+    <tr>
+      <td>Front-end</td>
+      <td>Vanilla JavaScript SPA — DOM manipulation, <code>fetch()</code> API, JSON. Leaflet + OpenStreetMap (χάρτης).
+        Responsive CSS (Flexbox, Grid, Media Queries)</td>
+    </tr>
+  </table>
+  <p>
+    Η εφαρμογή είναι <strong>Single-Page Application</strong>: η πλοήγηση και η ενημέρωση του περιεχομένου
+    γίνονται δυναμικά μέσω JavaScript χωρίς επαναφόρτωση σελίδας (<code>addEventListener</code>,
+    <code>e.preventDefault()</code>), και η επικοινωνία με τον server γίνεται αποκλειστικά με
+    <code>fetch()</code> και JSON.
+  </p>
+
+  <h2>3. Σχεδιασμός Βάσης Δεδομένων</h2>
+  <p>Η βάση είναι σχεσιακή και αποτελείται από 6 πίνακες. Ακολουθεί το διάγραμμα οντοτήτων–συσχετίσεων (ER).</p>
+
+  <div class="mermaid">
+    erDiagram
+    users ||--o{ listings : "δημοσιεύει (cook)"
+    users ||--o{ requests : "αιτείται (consumer)"
+    users ||--o{ ratings : "βαθμολογεί"
+    listings ||--o{ requests : "δέχεται"
+    listings ||--o{ ratings : "αξιολογείται"
+    listings ||--o{ listing_allergens : "έχει"
+    allergens ||--o{ listing_allergens : "σε"
+    requests ||--o| ratings : "έχει"
+
+    users {
+    int id PK
+    varchar username
+    varchar email
+    varchar phone
+    varchar password_hash
+    varchar display_name
+    enum role "student | admin"
+    int points "default 5"
+    datetime created_at
+    }
+    listings {
+    int id PK
+    int cook_id FK
+    varchar title
+    varchar photo_url "nullable"
+    text notes
+    int portions_total
+    int portions_available
+    varchar pickup_location
+    decimal pickup_lat
+    decimal pickup_lng
+    varchar pickup_time
+    datetime created_at
+    }
+    allergens {
+    int id PK
+    varchar name
+    }
+    listing_allergens {
+    int listing_id PK, FK
+    int allergen_id PK, FK
+    }
+    requests {
+    int id PK
+    int listing_id FK
+    int consumer_id FK
+    enum status "pending|approved|rejected|picked_up|no_show"
+    datetime created_at
+    datetime approved_at
+    datetime picked_up_at
+    tinyint rating_penalty_applied
+    }
+    ratings {
+    int id PK
+    int request_id FK "UNIQUE (1:1)"
+    int listing_id FK
+    int consumer_id FK
+    int cook_id FK
+    int stars "1-5"
+    datetime created_at
+    }
+  </div>
+
+  <h3>3.1 Περιγραφή πινάκων</h3>
+  <table>
+    <tr>
+      <th>Πίνακας</th>
+      <th>Ρόλος</th>
+    </tr>
+    <tr>
+      <td><code>users</code></td>
+      <td>Όλοι οι χρήστες (φοιτητές &amp; admin). Κάθε φοιτητής είναι ταυτόχρονα δυνητικός μάγειρας και καταναλωτής.
+        Κρατά τους πόντους (<code>points</code>) — νέοι χρήστες ξεκινούν με 5.</td>
+    </tr>
+    <tr>
+      <td><code>listings</code></td>
+      <td>Οι αγγελίες φαγητού. Συνδέεται με τον μάγειρα (<code>cook_id</code>). Κρατά διαθέσιμες/συνολικές μερίδες,
+        σημείο &amp; ώρα παραλαβής και συντεταγμένες για τον χάρτη.</td>
+    </tr>
+    <tr>
+      <td><code>allergens</code></td>
+      <td>Λίστα αναφοράς με τα 14 αλλεργιογόνα της ΕΕ (eufic.org).</td>
+    </tr>
+    <tr>
+      <td><code>listing_allergens</code></td>
+      <td>Πίνακας σύνδεσης Many-to-Many: ποια αλλεργιογόνα δηλώνει κάθε αγγελία.</td>
+    </tr>
+    <tr>
+      <td><code>requests</code></td>
+      <td>Τα αιτήματα δέσμευσης μερίδας. Κρατά την κατάσταση (pending → approved → picked_up / no_show / rejected) και
+        τις χρονοσφραγίδες για τους κανόνες 48ώρου.</td>
+    </tr>
+    <tr>
+      <td><code>ratings</code></td>
+      <td>Οι βαθμολογίες (1–5 αστέρια). Σχέση 1:1 με το <code>request</code> (μία βαθμολογία ανά παραληφθείσα μερίδα,
+        μέσω <code>UNIQUE</code>).</td>
+    </tr>
+  </table>
+
+  <h3>3.2 Καταστάσεις αγγελίας (υπολογίζονται κατά την ανάγνωση)</h3>
+  <ul>
+    <li><strong>Ενεργή</strong> — ηλικία &lt; 48 ώρες <em>και</em> διαθέσιμες μερίδες &gt; 0. Εμφανίζεται κανονικά σε
+      λίστα/χάρτη.</li>
+    <li><strong>Ανενεργή</strong> — ηλικία &lt; 48 ώρες <em>και</em> 0 μερίδες. Εμφανίζεται γκριζαρισμένη.</li>
+    <li><strong>Διεγραμμένη</strong> — ηλικία ≥ 48 ώρες. Δεν εμφανίζεται στους χρήστες αλλά παραμένει στη ΒΔ για
+      στατιστικά.</li>
+  </ul>
+
+  <h3>3.3 Κανόνες πόντων (credits)</h3>
+  <ul>
+    <li>Νέος χρήστης: <strong>5 πόντοι</strong>. Δέσμευση μερίδας απαιτεί ≥ 1 πόντο (χρέωση −1 κατά την έγκριση).</li>
+    <li>Μάγειρας: <strong>+1</strong> ανά παραδομένη μερίδα, και <strong>+1 επιπλέον</strong> αν η βαθμολογία &gt; 3/5
+      (π.χ. 2/5 → 1 πόντος, 4/5 → 2 πόντοι).</li>
+    <li>Μη παραλαβή δεσμευμένης μερίδας: <strong>−1</strong> στον αιτούντα (η μερίδα επιστρέφει στο απόθεμα).</li>
+    <li>Μη βαθμολόγηση εντός 48 ωρών από την παραλαβή: <strong>−1</strong> στον παραλήπτη (περιοδικός έλεγχος στον
+      server).</li>
+  </ul>
+
+  <h2>4. Αρχιτεκτονική &amp; REST API</h2>
+  <p>Ο server εκθέτει REST endpoints (JSON) που καταναλώνει η SPA με <code>fetch()</code>:</p>
+  <table>
+    <tr>
+      <th>Ομάδα</th>
+      <th>Βασικά endpoints</th>
+    </tr>
+    <tr>
+      <td>Auth</td>
+      <td><code>POST /api/auth/register · login · logout</code>, <code>GET /api/auth/me</code></td>
+    </tr>
+    <tr>
+      <td>Αγγελίες</td>
+      <td><code>GET /api/listings</code> (με φίλτρο/ταξινόμηση απόστασης), <code>GET /mine</code>, <code>POST</code>,
+        <code>PUT/:id</code>, <code>DELETE/:id</code>
+      </td>
+    </tr>
+    <tr>
+      <td>Αιτήματα</td>
+      <td><code>POST /api/requests</code>, <code>GET /incoming · /mine</code>,
+        <code>POST /:id/approve · reject · pickup · noshow</code>
+      </td>
+    </tr>
+    <tr>
+      <td>Βαθμολογίες</td>
+      <td><code>POST /api/ratings</code></td>
+    </tr>
+    <tr>
+      <td>Admin</td>
+      <td><code>GET /api/admin/stats · /leaderboard</code></td>
+    </tr>
+  </table>
+  <p class="note">
+    Ένας περιοδικός έλεγχος στον server (<code>setInterval</code>) εφαρμόζει τις ποινές μη-βαθμολόγησης 48ώρου
+    και απορρίπτει εκκρεμή αιτήματα σε ληγμένες αγγελίες.
+  </p>
+
+  <h2>5. Παρουσίαση Εφαρμογής (Screenshots)</h2>
+  <p>
+    Η επίδειξη ακολουθεί τη ροή των προδιαγραφών: Επισκόπηση → Ρόλοι/Σύνδεση → Καταναλωτής →
+    Μάγειρας → Διαχειριστής → Προφίλ → Responsive. Οι οθόνες desktop (Εικ. 1–12) παράγονται
+    αυτόματα με το <code>capture-screenshots.js</code>· οι Εικ. 13–14 (mobile) τραβιούνται χειροκίνητα.
+  </p>
+
+  <figure>
+    <img src="screenshots/01-home-landing.png" alt="Αρχική σελίδα επισκέπτη">
+    <figcaption><b>Εικ. 1 — Αρχική σελίδα (επισκέπτης):</b> επισκόπηση της πλατφόρμας με ζωντανά στατιστικά,
+      «πώς λειτουργεί» και το σύστημα πόντων.</figcaption>
+  </figure>
+
+  <figure>
+    <img src="screenshots/02-auth-login.png" alt="Σύνδεση">
+    <figcaption><b>Εικ. 2 — Σύνδεση (Α — Ρόλοι/Πρόσβαση):</b> είσοδος με email ή όνομα χρήστη.</figcaption>
+  </figure>
+
+  <figure>
+    <img src="screenshots/03-auth-register.png" alt="Εγγραφή">
+    <figcaption><b>Εικ. 3 — Εγγραφή νέου χρήστη (Γ2):</b> νέοι χρήστες ξεκινούν με 5 πόντους· έλεγχος διπλότυπου
+      email και ταιριάσματος κωδικών σε πραγματικό χρόνο.</figcaption>
+  </figure>
+
+  <figure>
+    <img src="screenshots/04-feed.png" alt="Feed: λίστα + χάρτης">
+    <figcaption><b>Εικ. 4 — Δυναμικό Feed (Γ1):</b> λίστα αγγελιών + χάρτης Leaflet, με τις εξαντλημένες αγγελίες
+      γκριζαρισμένες. <span class="muted">(login: maria)</span></figcaption>
+  </figure>
+
+  <figure>
+    <img src="screenshots/05-feed-filters.png" alt="Φίλτρα feed">
+    <figcaption><b>Εικ. 5 — Φίλτρα &amp; ταξινόμηση (Γ1):</b> αναζήτηση κειμένου, ταξινόμηση (π.χ. κατά βαθμολογία)
+      και αποκλεισμός αλλεργιογόνων με chips («χωρίς γάλα»).</figcaption>
+  </figure>
+
+  <figure>
+    <img src="screenshots/06-feed-distance.png" alt="Φίλτρο απόστασης">
+    <figcaption><b>Εικ. 6 — Ταξινόμηση/φιλτράρισμα κατά απόσταση (Γ1):</b> σημείο αναφοράς στον χάρτη και όριο
+      <code>maxKm</code> — η λίστα ταξινομείται από το κοντινότερο.</figcaption>
+  </figure>
+
+  <figure>
+    <img src="screenshots/07-listing-form.png" alt="Φόρμα νέας αγγελίας">
+    <figcaption><b>Εικ. 7 — Δημιουργία αγγελίας (Β1, Β2):</b> τίτλος, σημειώσεις, μερίδες, φωτογραφία, επιλογή
+      αλλεργιογόνων και ορισμός σημείου παραλαβής στον χάρτη.</figcaption>
+  </figure>
+
+  <figure>
+    <img src="screenshots/08-my-listings.png" alt="Οι αγγελίες μου">
+    <figcaption><b>Εικ. 8 — «Οι αγγελίες μου» (Β1, Β4):</b> CRUD (επεξεργασία/διαγραφή), προβολή πόντων μάγειρα και
+      επισήμανση ληγμένης αγγελίας.</figcaption>
+  </figure>
+
+  <figure>
+    <img src="screenshots/09-cook-inbox.png" alt="Πίνακας αιτημάτων μάγειρα">
+    <figcaption><b>Εικ. 9 — Διαχείριση αιτημάτων (Β3):</b> όλες οι καταστάσεις — αποδοχή/απόρριψη, και μετά την
+      έγκριση σήμανση παραλαβής ή μη-παραλαβής.</figcaption>
+  </figure>
+
+  <figure>
+    <img src="screenshots/10-my-reservations.png" alt="Κρατήσεις & βαθμολογία">
+    <figcaption><b>Εικ. 10 — «Οι κρατήσεις μου» &amp; Αξιολόγηση (Γ2, Γ3):</b> αιτήματα σε αναμονή, ολοκληρωμένη
+      βαθμολόγηση και το widget βαθμολόγησης 1–5 αστέρων μετά την παραλαβή.</figcaption>
+  </figure>
+
+  <figure>
+    <img src="screenshots/11-admin-dashboard.png" alt="Πίνακας διαχειριστή">
+    <figcaption><b>Εικ. 11 — Πίνακας Διαχειριστή (Δ1, Δ2):</b> μερίδες τελευταίου μήνα, σύνολα και Leaderboard
+      (Top Donor + κορυφαία γεύματα).</figcaption>
+  </figure>
+
+  <figure>
+    <img src="screenshots/12-profile.png" alt="Προφίλ χρήστη">
+    <figcaption><b>Εικ. 12 — Προφίλ χρήστη:</b> στοιχεία λογαριασμού (email, τηλέφωνο, πόντοι) και στατιστικά
+      δραστηριότητας (αγγελίες, μερίδες που προσφέρθηκαν, μέση βαθμολογία, κρατήσεις).</figcaption>
+  </figure>
+
+  <figure>
+    <img src="screenshots/phone.png" alt="Responsive — κινητό">
+    <figcaption><b>Εικ. 13 — Responsive σε κινητό (Ε3):</b> μονή στήλη, φίλτρα σε στοίβα και κάτω bottom tab bar
+      αντί για top nav.</figcaption>
+  </figure>
+
+  <figure>
+    <img src="screenshots/tablet.png" alt="Responsive — tablet">
+    <figcaption><b>Εικ. 14 — Responsive σε tablet (Ε3):</b> προσαρμογή της διάταξης (χάρτης + κάρτες, top nav) σε
+      ενδιάμεσο πλάτος οθόνης.</figcaption>
+  </figure>
+
+  <h2>6. Οδηγίες Εκτέλεσης</h2>
+  <ol>
+    <li>Δημιουργία βάσης: <code>mysql -u root &lt; schema.sql</code></li>
+    <li>Ρυθμίσεις σύνδεσης στο <code>.env</code> (DB_HOST, DB_USER, DB_PASSWORD, DB_NAME)</li>
+    <li><code>npm install</code></li>
+    <li><code>npm start</code> → <code>http://localhost:3000</code></li>
+  </ol>
+  <p>
+    Δοκιμαστικοί λογαριασμοί (κωδικός: <code>pass1234</code>): <code>admin</code> (διαχειριστής),
+    <code>maria</code> / <code>giorgos</code> / <code>eleni</code> / <code>sofia</code> / <code>androniki</code>
+    (φοιτητές Αθήνας), <code>kostas</code> / <code>nikos</code> / <code>dimitris</code> (φοιτητές Πάτρας).
+    Η εξαγωγή της ΒΔ περιλαμβάνεται ως <code>unibite_export.sql</code>.
+  </p>
+
+</body>
+
+</html>
