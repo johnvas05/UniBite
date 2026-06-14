@@ -431,6 +431,33 @@ h2 {
 .chip.on { background: var(--violet-soft); border-color: var(--violet); color: var(--violet-dark); }
 .feed-hint { display: block; }
 
+/* ---------- Pagination ---------- */
+.cards-col { min-width: 0; }
+.pager { display: flex; flex-direction: column; align-items: center; gap: 0.55rem; margin-top: 1.4rem; }
+.pager-controls { display: flex; align-items: center; gap: 0.4rem; flex-wrap: wrap; justify-content: center; }
+.pager-nums { display: flex; gap: 0.3rem; flex-wrap: wrap; }
+.pager-btn, .pager-num {
+  border: 1px solid var(--border);
+  background: var(--card-bg);
+  color: var(--text);
+  font-family: inherit;
+  font-weight: 700;
+  cursor: pointer;
+  border-radius: 10px;
+  transition: border-color 0.12s, color 0.12s, background 0.12s;
+}
+.pager-btn { display: inline-flex; align-items: center; gap: 0.25rem; padding: 0.42rem 0.7rem; font-size: 0.85rem; }
+.pager-num { width: 34px; height: 34px; font-size: 0.9rem; }
+.pager-btn:hover:not(:disabled), .pager-num:hover { border-color: var(--primary); color: var(--primary-dark); }
+.pager-btn:disabled { opacity: 0.45; cursor: default; }
+.pager-num.active {
+  background: linear-gradient(135deg, var(--primary-bright), #34b85f);
+  border-color: transparent;
+  color: #10240e;
+}
+.rot-90 { transform: rotate(90deg); }
+.rot-270 { transform: rotate(-90deg); }
+
 /* Map + cards split that grows with the viewport */
 .feed-layout {
   display: grid;

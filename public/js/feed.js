@@ -73,10 +73,11 @@ function renderFeedView(container) {
     hint
   );
 
+  const pager = el('div', { class: 'pager' });
   container.append(
     el('h2', {}, 'Διαθέσιμα γεύματα'),
     controls,
-    el('div', { class: 'feed-layout' }, mapDiv, cards)
+    el('div', { class: 'feed-layout' }, mapDiv, el('div', { class: 'cards-col' }, cards, pager))
   );
 
   // build allergen exclusion chips
@@ -110,6 +111,9 @@ function renderFeedView(container) {
   refreshMap(map);
   let markers = [];
   let refMarker = null;
+  let allListings = [];
+  let page = 1;
+  const PAGE_SIZE = 6;
 
   function setRefPoint(lat, lng) {
     feedState.refPoint = { lat, lng };
@@ -157,12 +161,54 @@ function renderFeedView(container) {
         marker.bindPopup(`<b>${l.title}</b><br>${l.pickup_location}<br>${l.status === 'active' ? l.portions_available + ' μερίδες' : 'Εξαντλήθηκε'}`);
         return marker;
       });
-      cards.innerHTML = '';
-      if (!listings.length) cards.append(el('p', { class: 'muted' }, 'Δεν βρέθηκαν αγγελίες με αυτά τα κριτήρια.'));
-      listings.forEach((l) => cards.append(listingCard(l, load)));
+      allListings = listings;
+      page = 1;
+      renderPage();
     } catch (err) {
       toast(err.message, true);
     }
+  }
+
+  // Render the current page of cards + the pager. The map shows ALL pins;
+  // only the card list is paginated.
+  function renderPage() {
+    cards.innerHTML = '';
+    pager.innerHTML = '';
+    const total = allListings.length;
+    if (!total) {
+      cards.append(el('p', { class: 'muted' }, 'Δεν βρέθηκαν αγγελίες με αυτά τα κριτήρια.'));
+      return;
+    }
+    const pageCount = Math.ceil(total / PAGE_SIZE);
+    if (page > pageCount) page = pageCount;
+    const start = (page - 1) * PAGE_SIZE;
+    allListings.slice(start, start + PAGE_SIZE).forEach((l) => cards.append(listingCard(l, load)));
+    renderPager(pageCount, total, start);
+  }
+
+  function goToPage(p) {
+    page = p;
+    renderPage();
+    cards.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  function renderPager(pageCount, total, start) {
+    const summary = el('span', { class: 'pager-summary muted small' },
+      `${start + 1}–${Math.min(start + PAGE_SIZE, total)} από ${total} γεύματα`);
+    if (pageCount <= 1) { pager.append(summary); return; }
+
+    const prev = el('button', { class: 'pager-btn', disabled: page === 1 ? '' : null }, icon('chevron-down', { size: 16, cls: 'rot-90' }), 'Προηγ.');
+    prev.addEventListener('click', () => page > 1 && goToPage(page - 1));
+    const next = el('button', { class: 'pager-btn', disabled: page === pageCount ? '' : null }, 'Επόμ.', icon('chevron-down', { size: 16, cls: 'rot-270' }));
+    next.addEventListener('click', () => page < pageCount && goToPage(page + 1));
+
+    const numbers = el('div', { class: 'pager-nums' });
+    for (let p = 1; p <= pageCount; p++) {
+      const b = el('button', { class: 'pager-num' + (p === page ? ' active' : '') }, String(p));
+      b.addEventListener('click', () => p !== page && goToPage(p));
+      numbers.append(b);
+    }
+    pager.append(el('div', { class: 'pager-controls' }, prev, numbers, next), summary);
   }
 
   load();
