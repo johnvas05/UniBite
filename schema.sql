@@ -18,6 +18,7 @@ CREATE TABLE users (
   first_name    VARCHAR(60)  NOT NULL,
   last_name     VARCHAR(60)  NOT NULL,
   display_name  VARCHAR(100) NOT NULL,
+  avatar_url    VARCHAR(255) NULL,
   role          ENUM('student','admin') NOT NULL DEFAULT 'student',
   points        INT NOT NULL DEFAULT 5,
   created_at    DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP

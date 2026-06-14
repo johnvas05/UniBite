@@ -1,8 +1,20 @@
 const express = require('express');
 const bcrypt = require('bcrypt');
+const multer = require('multer');
+const path = require('path');
 const pool = require('../db');
 
 const router = express.Router();
+
+// Avatar uploads — same disk storage convention as listing photos
+const upload = multer({
+  storage: multer.diskStorage({
+    destination: path.join(__dirname, '..', 'public', 'uploads'),
+    filename: (req, file, cb) => cb(null, 'avatar-' + Date.now() + path.extname(file.originalname)),
+  }),
+  limits: { fileSize: 5 * 1024 * 1024 },
+  fileFilter: (req, file, cb) => cb(null, /^image\//.test(file.mimetype)),
+});
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const PHONE_RE = /^\+?\d{8,15}$/; // digits only after stripping spaces/dashes
@@ -55,7 +67,7 @@ router.post('/register', async (req, res) => {
     req.session.role = 'student';
     res.status(201).json({
       id: result.insertId, email: cleanEmail, phone: cleanPhone, first_name: first_name.trim(),
-      last_name: last_name.trim(), display_name: displayName, role: 'student', points: 5,
+      last_name: last_name.trim(), display_name: displayName, avatar_url: null, role: 'student', points: 5,
     });
   } catch (err) {
     if (err.code === 'ER_DUP_ENTRY') {
@@ -84,7 +96,8 @@ router.post('/login', async (req, res) => {
     req.session.role = user.role;
     res.json({
       id: user.id, email: user.email, phone: user.phone, first_name: user.first_name,
-      last_name: user.last_name, display_name: user.display_name, role: user.role, points: user.points,
+      last_name: user.last_name, display_name: user.display_name, avatar_url: user.avatar_url,
+      role: user.role, points: user.points,
     });
   } catch (err) {
     console.error(err);
@@ -101,10 +114,63 @@ router.post('/logout', (req, res) => {
 router.get('/me', async (req, res) => {
   if (!req.session.userId) return res.json(null);
   const [rows] = await pool.query(
-    'SELECT id, email, phone, first_name, last_name, display_name, role, points FROM users WHERE id = ?',
+    'SELECT id, email, phone, first_name, last_name, display_name, avatar_url, role, points FROM users WHERE id = ?',
     [req.session.userId]
   );
   res.json(rows[0] || null);
+});
+
+// PUT /api/auth/profile — update own name and/or avatar (multipart)
+router.put('/profile', upload.single('avatar'), async (req, res) => {
+  const uid = req.session.userId;
+  if (!uid) return res.status(401).json({ error: 'Απαιτείται σύνδεση' });
+  const first = (req.body.first_name || '').trim();
+  const last = (req.body.last_name || '').trim();
+  if (!first || !last) return res.status(400).json({ error: 'Συμπληρώστε όνομα και επώνυμο' });
+  const displayName = `${first} ${last}`;
+  const avatarUrl = req.file ? '/uploads/' + req.file.filename : null;
+  try {
+    await pool.query(
+      `UPDATE users SET first_name = ?, last_name = ?, display_name = ?,
+              avatar_url = COALESCE(?, avatar_url) WHERE id = ?`,
+      [first, last, displayName, avatarUrl, uid]
+    );
+    const [rows] = await pool.query(
+      'SELECT id, email, phone, first_name, last_name, display_name, avatar_url, role, points FROM users WHERE id = ?',
+      [uid]
+    );
+    res.json(rows[0]);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Σφάλμα διακομιστή' });
+  }
+});
+
+// GET /api/auth/profile — account details + activity summary
+router.get('/profile', async (req, res) => {
+  const uid = req.session.userId;
+  if (!uid) return res.status(401).json({ error: 'Απαιτείται σύνδεση' });
+  try {
+    const [[user]] = await pool.query(
+      `SELECT id, email, phone, first_name, last_name, display_name, avatar_url, role, points, created_at
+         FROM users WHERE id = ?`,
+      [uid]
+    );
+    if (!user) return res.json(null);
+    const [[stats]] = await pool.query(
+      `SELECT
+         (SELECT COUNT(*) FROM listings WHERE cook_id = ?) AS listings_count,
+         (SELECT COUNT(*) FROM requests r JOIN listings l ON l.id = r.listing_id
+            WHERE l.cook_id = ? AND r.status = 'picked_up') AS portions_given,
+         (SELECT ROUND(AVG(stars), 1) FROM ratings WHERE cook_id = ?) AS avg_rating,
+         (SELECT COUNT(*) FROM requests WHERE consumer_id = ?) AS reservations_made`,
+      [uid, uid, uid, uid]
+    );
+    res.json({ ...user, stats });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Σφάλμα διακομιστή' });
+  }
 });
 
 module.exports = router;
